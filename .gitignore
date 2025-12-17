@@ -1,0 +1,64 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Node / JS
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.python-version
+venv/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.tox/
+
+# Java / JVM
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.gradle/
+out/
+
+# Go
+bin/
+*.test
+
+# Rust
+target/
+
+# C / C++
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# Misc
+logs/
