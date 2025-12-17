@@ -1285,8 +1285,8 @@ const InstanceDetail: React.FC = () => {
             </div>
          </div>
 
-         {/* Tabs Navigation - Sticky */}
-         <div className="sticky top-0 z-20 bg-background border-b border-white/10 flex gap-0 overflow-x-auto no-scrollbar">
+         {/* Tabs Navigation */}
+         <div className="border-b border-white/10 flex gap-0 overflow-x-auto no-scrollbar">
             {tabs.map(tab => (
                <TabButton key={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)}>
                   {tab}
@@ -1299,379 +1299,40 @@ const InstanceDetail: React.FC = () => {
 
             {/* --- OVERVIEW TAB --- */}
             {activeTab === 'Overview' && (
-               <div className="space-y-6 animate-fade-in">
-                  {/* Compact Status Summary Strip */}
-                  <div className="bg-surface border border-white/5 rounded-xl p-4 flex flex-wrap items-center gap-6">
-                     <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${getStatusColor(instance.status)} animate-pulse`} />
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Status</div>
-                           <div className="text-sm font-bold text-slate-100">
-                              {instance.status === InstanceStatus.ONLINE ? 'Online' :
-                                 instance.status === InstanceStatus.OFFLINE ? 'Offline' :
-                                    instance.status === InstanceStatus.BOOTSTRAPPING ? 'Provisioning' :
-                                       instance.status}
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className="h-8 w-px bg-white/10" />
-
-                     <div className="flex items-center gap-3">
-                        <Activity className={`w-4 h-4 ${instance.health > 90 ? 'text-success' : instance.health > 50 ? 'text-warning' : 'text-danger'}`} />
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Health</div>
-                           <div className={`text-sm font-bold ${instance.health > 90 ? 'text-success' : instance.health > 50 ? 'text-warning' : 'text-danger'}`}>
-                              {instance.health > 90 ? 'Healthy' : instance.health > 50 ? 'Degraded' : 'Critical'}
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className="h-8 w-px bg-white/10" />
-
-                     <div className="flex items-center gap-3">
-                        <Globe className="w-4 h-4 text-slate-500" />
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Environment</div>
-                           <div className="text-sm font-bold text-slate-100">Production</div>
-                        </div>
-                     </div>
-
-                     <div className="h-8 w-px bg-white/10" />
-
-                     <div className="flex items-center gap-3">
-                        <Code className="w-4 h-4 text-slate-500" />
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Active Version</div>
-                           <div className="text-sm font-bold text-slate-100 font-mono">{instance.version}</div>
-                        </div>
-                     </div>
-
-                     <div className="h-8 w-px bg-white/10" />
-
-                     <div className="flex items-center gap-3">
-                        <Clock className="w-4 h-4 text-slate-500" />
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Last Heartbeat</div>
-                           <div className="text-sm font-bold text-slate-100">{instance.lastSeen || 'N/A'}</div>
-                        </div>
-                     </div>
-                  </div>
-
-                  {/* Main Content Grid - Reordered by Priority */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     {/* 1. Health & Status - PRIORITY 1 */}
-                     <DetailCard
-                        title="Health & Status"
-                        action={
-                           <button
-                              onClick={handleViewLogs}
-                              className="text-xs text-primary hover:text-white transition-colors flex items-center gap-1.5 font-medium"
-                           >
-                              <Terminal className="w-3.5 h-3.5" />
-                              View Logs
-                           </button>
-                        }
-                     >
-                        <div className="space-y-4">
-                           {/* Lifecycle Status */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Power className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Lifecycle Status</span>
-                              </div>
-                              <div className="text-sm text-right">{getStatusLabel(instance.status)}</div>
-                           </div>
-
-                           {/* Health State with Progress */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Activity className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Health State</span>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                 <div className="w-24 bg-slate-700/30 rounded-full h-1.5 overflow-hidden">
-                                    <div
-                                       className={`h-1.5 rounded-full transition-all duration-500 ${instance.health > 90 ? 'bg-success' :
-                                          instance.health > 50 ? 'bg-warning' :
-                                             'bg-danger'
-                                          }`}
-                                       style={{ width: `${instance.health}%` }}
-                                    />
-                                 </div>
-                                 <span className={`text-sm font-bold ${instance.health > 90 ? 'text-success' :
-                                    instance.health > 50 ? 'text-warning' :
-                                       'text-danger'
-                                    }`}>
-                                    {instance.health}%
-                                 </span>
-                              </div>
-                           </div>
-
-                           {/* Last Heartbeat */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Clock className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Last Heartbeat</span>
-                              </div>
-                              <div className="text-sm text-slate-100">{instance.lastSeen || 'N/A'}</div>
-                           </div>
-
-                           {/* Active Config Version */}
-                           <div className="flex items-center justify-between py-2">
-                              <div className="flex items-center gap-2">
-                                 <Settings2 className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Active Config</span>
-                              </div>
-                              <span className="font-mono text-xs bg-primary/10 text-primary px-2 py-1 rounded border border-primary/20">
-                                 {latestConfigVersion}
-                              </span>
-                           </div>
-                        </div>
-                     </DetailCard>
-
-                     {/* 2. Usage This Month - PRIORITY 2 */}
-                     <DetailCard
-                        title="Usage This Month"
-                        action={
-                           <div className="text-[10px] text-slate-500 font-medium">
-                              Resets on 1st of month
-                           </div>
-                        }
-                     >
-                        {usage ? (
-                           <div className="space-y-5">
-                              {/* Queries */}
-                              <div>
-                                 <div className="flex justify-between text-xs mb-2">
-                                    <div className="flex items-center gap-2">
-                                       <Zap className="w-3.5 h-3.5 text-slate-400" />
-                                       <span className="text-slate-400 font-medium">Queries</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                       <span className="text-slate-200 font-mono">{usage.queriesUsed.toLocaleString()} / {usage.queriesLimit.toLocaleString()}</span>
-                                       <span className={`font-bold ${(usage.queriesUsed / usage.queriesLimit) > 0.9 ? 'text-danger' :
-                                          (usage.queriesUsed / usage.queriesLimit) > 0.7 ? 'text-warning' :
-                                             'text-success'
-                                          }`}>
-                                          {Math.round((usage.queriesUsed / usage.queriesLimit) * 100)}%
-                                       </span>
-                                    </div>
-                                 </div>
-                                 <div className="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
-                                    <div
-                                       className={`h-2 rounded-full transition-all duration-500 ease-out ${(usage.queriesUsed / usage.queriesLimit) > 0.9 ? 'bg-danger' :
-                                          (usage.queriesUsed / usage.queriesLimit) > 0.7 ? 'bg-warning' :
-                                             'bg-primary'
-                                          }`}
-                                       style={{ width: `${Math.min(100, (usage.queriesUsed / usage.queriesLimit) * 100)}%` }}
-                                    />
-                                 </div>
-                              </div>
-
-                              {/* Concurrent Users */}
-                              <div>
-                                 <div className="flex justify-between text-xs mb-2">
-                                    <div className="flex items-center gap-2">
-                                       <Activity className="w-3.5 h-3.5 text-slate-400" />
-                                       <span className="text-slate-400 font-medium">Concurrent Users</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                       <span className="text-slate-200 font-mono">{usage.concurrentUsers.toLocaleString()} / {usage.concurrentUsersLimit.toLocaleString()}</span>
-                                       <span className={`font-bold ${(usage.concurrentUsers / usage.concurrentUsersLimit) > 0.9 ? 'text-danger' :
-                                          (usage.concurrentUsers / usage.concurrentUsersLimit) > 0.7 ? 'text-warning' :
-                                             'text-accent'
-                                          }`}>
-                                          {Math.round((usage.concurrentUsers / usage.concurrentUsersLimit) * 100)}%
-                                       </span>
-                                    </div>
-                                 </div>
-                                 <div className="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
-                                    <div
-                                       className={`h-2 rounded-full transition-all duration-500 ease-out ${(usage.concurrentUsers / usage.concurrentUsersLimit) > 0.9 ? 'bg-danger' :
-                                          (usage.concurrentUsers / usage.concurrentUsersLimit) > 0.7 ? 'bg-warning' :
-                                             'bg-accent'
-                                          }`}
-                                       style={{ width: `${Math.min(100, (usage.concurrentUsers / usage.concurrentUsersLimit) * 100)}%` }}
-                                    />
-                                 </div>
-                              </div>
-
-                              {/* RAG Documents */}
-                              <div>
-                                 <div className="flex justify-between text-xs mb-2">
-                                    <div className="flex items-center gap-2">
-                                       <Database className="w-3.5 h-3.5 text-slate-400" />
-                                       <span className="text-slate-400 font-medium">RAG Documents</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                       <span className="text-slate-200 font-mono">{usage.ragDocuments.toLocaleString()} / {usage.ragDocumentsLimit.toLocaleString()}</span>
-                                       <span className={`font-bold ${(usage.ragDocuments / usage.ragDocumentsLimit) > 0.9 ? 'text-danger' :
-                                          (usage.ragDocuments / usage.ragDocumentsLimit) > 0.7 ? 'text-warning' :
-                                             'text-purple-400'
-                                          }`}>
-                                          {Math.round((usage.ragDocuments / usage.ragDocumentsLimit) * 100)}%
-                                       </span>
-                                    </div>
-                                 </div>
-                                 <div className="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
-                                    <div
-                                       className={`h-2 rounded-full transition-all duration-500 ease-out ${(usage.ragDocuments / usage.ragDocumentsLimit) > 0.9 ? 'bg-danger' :
-                                          (usage.ragDocuments / usage.ragDocumentsLimit) > 0.7 ? 'bg-warning' :
-                                             'bg-purple-500'
-                                          }`}
-                                       style={{ width: `${Math.min(100, (usage.ragDocuments / usage.ragDocumentsLimit) * 100)}%` }}
-                                    />
-                                 </div>
-                              </div>
-                           </div>
-                        ) : (
-                           <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>
-                        )}
-                     </DetailCard>
-
-                     {/* 3. Instance Information - PRIORITY 3 */}
-                     <DetailCard
-                        title="Instance Information"
-                        action={
-                           <button
-                              onClick={() => setActiveTab('Configuration')}
-                              className="text-xs text-primary hover:text-white transition-colors flex items-center gap-1.5 font-medium"
-                           >
-                              <Settings2 className="w-3.5 h-3.5" />
-                              Configure
-                           </button>
-                        }
-                     >
-                        <div className="space-y-4">
-                           {/* Instance Name */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Server className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Instance Name</span>
-                              </div>
-                              <div className="text-sm text-slate-100 font-medium">{instance.name}</div>
-                           </div>
-
-                           {/* Instance ID with Copy */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <FileCode className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Instance ID</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                 <span className="text-[#F472B6] font-mono text-xs bg-[#F472B6]/10 px-2 py-1 rounded border border-[#F472B6]/20">
-                                    {instance.id}
-                                 </span>
-                                 <button
-                                    onClick={() => {
-                                       navigator.clipboard.writeText(instance.id);
-                                       notify('Instance ID copied to clipboard', 'success');
-                                    }}
-                                    className="p-1 hover:bg-white/5 rounded transition-colors"
-                                    title="Copy Instance ID"
-                                 >
-                                    <Copy className="w-3.5 h-3.5 text-slate-400 hover:text-white" />
-                                 </button>
-                              </div>
-                           </div>
-
-                           {/* Version */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Code className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Version</span>
-                              </div>
-                              <div className="text-sm text-slate-100 font-mono">{instance.version}</div>
-                           </div>
-
-                           {/* Deployment Type */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Package className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Deployment Type</span>
-                              </div>
-                              <div className="text-sm text-slate-100">Binary</div>
-                           </div>
-
-                           {/* Environment */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Globe className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Environment</span>
-                              </div>
-                              <span className="text-sm px-2 py-0.5 rounded bg-success/10 text-success border border-success/20 font-medium">
-                                 Production
-                              </span>
-                           </div>
-
-                           {/* Created Timestamp */}
-                           <div className="flex items-center justify-between py-2">
-                              <div className="flex items-center gap-2">
-                                 <Clock className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">Created</span>
-                              </div>
-                              <div className="text-sm text-slate-100">{new Date(instance.created).toLocaleDateString()}</div>
-                           </div>
-                        </div>
-                     </DetailCard>
-
-                     {/* 4. License Information - PRIORITY 4 */}
-                     <DetailCard
-                        title="License Information"
-                        action={
-                           instance.licenseKey && (
-                              <button
-                                 onClick={() => {
-                                    navigator.clipboard.writeText(instance.licenseKey!);
-                                    notify('License key copied to clipboard', 'success');
-                                 }}
-                                 className="text-xs text-primary hover:text-white transition-colors flex items-center gap-1.5 font-medium"
-                              >
-                                 <Copy className="w-3.5 h-3.5" />
-                                 Copy Key
-                              </button>
-                           )
-                        }
-                     >
-                        <div className="space-y-4">
-                           {/* License Tier */}
-                           <div className="flex items-center justify-between py-2 border-b border-white/5">
-                              <div className="flex items-center gap-2">
-                                 <Shield className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">License Tier</span>
-                              </div>
-                              <span className="text-sm font-bold text-slate-100 px-3 py-1 rounded bg-white/5 border border-white/10 uppercase tracking-wider">
-                                 {instance.tier}
-                              </span>
-                           </div>
-
-                           {/* License Key */}
-                           {instance.licenseKey && (
-                              <div className="flex items-center justify-between py-2 border-b border-white/5">
-                                 <div className="flex items-center gap-2">
-                                    <Lock className="w-4 h-4 text-slate-400" />
-                                    <span className="text-slate-300 text-sm font-medium">License Key</span>
-                                 </div>
-                                 <div className="text-sm text-slate-100 font-mono text-xs bg-white/5 px-2 py-1 rounded">
-                                    {instance.licenseKey.substring(0, 8)}...{instance.licenseKey.substring(instance.licenseKey.length - 4)}
-                                 </div>
-                              </div>
-                           )}
-
-                           {/* License Expiry */}
-                           <div className="flex items-center justify-between py-2">
-                              <div className="flex items-center gap-2">
-                                 <Clock className="w-4 h-4 text-slate-400" />
-                                 <span className="text-slate-300 text-sm font-medium">License Expiry</span>
-                              </div>
-                              <div className="text-sm text-slate-100">
-                                 {instance.licenseExpiry ? new Date(instance.licenseExpiry).toLocaleDateString() : 'Perpetual'}
-                              </div>
-                           </div>
-                        </div>
-                     </DetailCard>
-                  </div>
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                  <DetailCard title="Instance Information">
+                     <InfoRow label="Instance Name" value={instance.name} />
+                     <InfoRow label="Instance ID" value={<span className="text-[#F472B6] font-mono">{instance.id}</span>} />
+                     <InfoRow label="Version" value={instance.version} />
+                     <InfoRow label="Deployment Type" value="Binary" />
+                     <InfoRow label="Environment" value="Production" />
+                     <InfoRow label="Created Timestamp" value={new Date(instance.created).toLocaleDateString()} />
+                  </DetailCard>
+                  <DetailCard title="Health & Status">
+                     <InfoRow label="Lifecycle Status" value={getStatusLabel(instance.status)} />
+                     <InfoRow label="Health State" value={
+                        <span className={instance.health > 90 ? "text-success" : instance.health > 50 ? "text-warning" : "text-danger"}>
+                           {instance.health > 90 ? 'Healthy' : instance.health > 50 ? 'Degraded' : 'Unknown'}
+                        </span>
+                     } />
+                     <InfoRow label="Last Heartbeat" value={instance.lastSeen || 'N/A'} />
+                     <InfoRow label="Active Config Version" value={<span className="font-mono text-xs bg-white/5 px-2 py-0.5 rounded">{latestConfigVersion}</span>} />
+                  </DetailCard>
+                  <DetailCard title="Usage This Month">
+                     {usage ? (
+                        <>
+                           <ProgressBar value={usage.queriesUsed} max={usage.queriesLimit} label="Queries" />
+                           <ProgressBar value={usage.concurrentUsers} max={usage.concurrentUsersLimit} label="Concurrent Users" color="bg-accent" />
+                           <ProgressBar value={usage.ragDocuments} max={usage.ragDocumentsLimit} label="RAG Documents" color="bg-purple-500" />
+                        </>
+                     ) : (
+                        <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>
+                     )}
+                  </DetailCard>
+                  <DetailCard title="License Information">
+                     <InfoRow label="License Tier" value={<span className="font-bold text-slate-200">{instance.tier}</span>} />
+                     <InfoRow label="License Expiry" value={instance.licenseExpiry ? new Date(instance.licenseExpiry).toLocaleDateString() : 'N/A'} />
+                  </DetailCard>
                </div>
             )}
 
