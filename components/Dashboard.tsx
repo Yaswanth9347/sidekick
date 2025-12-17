@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { InstanceStatus } from '../types';
+import { InstanceStatus, UserRole } from '../types';
 import { PRODUCTS } from '../constants';
 import { useGlobal } from '../store';
 import { 
@@ -48,16 +48,26 @@ const ProductCard: React.FC<{ name: string; description: string; status: string;
 );
 
 const Dashboard: React.FC = () => {
-  const { instances, navigate, selectInstance } = useGlobal();
-  const onlineCount = instances.filter(i => i.status === InstanceStatus.ONLINE).length;
-  const totalInstances = instances.length;
+  const { user, instances, navigate, selectInstance } = useGlobal();
+  
+  // Filter instances by tenant for non-Super Admin users
+  const filteredInstances = user && user.role !== UserRole.SUPER_ADMIN && user.tenantId
+    ? instances.filter(i => i.tenantId === user.tenantId)
+    : instances;
+  
+  const onlineCount = filteredInstances.filter(i => i.status === InstanceStatus.ONLINE).length;
+  const totalInstances = filteredInstances.length;
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex justify-between items-end">
         <div>
            <h2 className="text-3xl font-bold text-slate-100 mb-2">Dashboard</h2>
-           <p className="text-slate-400">Overview of your AI fleet and product health.</p>
+           <p className="text-slate-400">
+             {user?.role === UserRole.SUPER_ADMIN 
+               ? 'Global overview of all tenants and platform health.'
+               : 'Overview of your AI fleet and activity.'}
+           </p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => navigate('INSTANCES')} className="px-4 py-2 bg-surface border border-white/10 rounded-lg text-slate-300 text-sm hover:text-white hover:bg-white/5 transition-colors">
@@ -137,7 +147,7 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-sm">
-              {instances.slice(0, 4).map((inst) => (
+              {filteredInstances.slice(0, 4).map((inst) => (
                 <tr key={inst.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="p-4">
                     <div className="font-medium text-slate-100">{inst.name}</div>

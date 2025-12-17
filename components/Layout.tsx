@@ -136,7 +136,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             collapsed={sidebarCollapsed}
           />
 
-          {(user.role === UserRole.TENANT_ADMIN || user.role === UserRole.SUPER_ADMIN) && (
+          {/* Management Section - Tenant Admins only */}
+          {user.role === UserRole.TENANT_ADMIN && (
             <>
               {!sidebarCollapsed && (
                 <div className="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -158,9 +159,43 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => navigate('APPOINTMENTS')}
                 collapsed={sidebarCollapsed}
               />
+              <NavItem
+                icon={<MessageSquare className="w-5 h-5" />}
+                label="Chat"
+                active={currentView === 'CHAT'}
+                onClick={() => navigate('CHAT')}
+                collapsed={sidebarCollapsed}
+              />
             </>
           )}
 
+          {/* Read-Only Tenant Users - Appointments and Chat */}
+          {user.role === UserRole.USER && (
+            <>
+              {!sidebarCollapsed && (
+                <div className="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Tenant Data
+                </div>
+              )}
+              {sidebarCollapsed && <div className="border-t border-white/10 my-2"></div>}
+              <NavItem
+                icon={<Calendar className="w-5 h-5" />}
+                label="Appointments"
+                active={currentView === 'APPOINTMENTS'}
+                onClick={() => navigate('APPOINTMENTS')}
+                collapsed={sidebarCollapsed}
+              />
+              <NavItem
+                icon={<MessageSquare className="w-5 h-5" />}
+                label="Chat"
+                active={currentView === 'CHAT'}
+                onClick={() => navigate('CHAT')}
+                collapsed={sidebarCollapsed}
+              />
+            </>
+          )}
+
+          {/* Super Admin Only - Global Management */}
           {user.role === UserRole.SUPER_ADMIN && (
             <>
               <NavItem
@@ -180,19 +215,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </>
           )}
 
+          {/* Tools Section - Settings for all */}
           {!sidebarCollapsed && (
             <div className="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Tools
             </div>
           )}
           {sidebarCollapsed && <div className="border-t border-white/10 my-2"></div>}
-          <NavItem
-            icon={<MessageSquare className="w-5 h-5" />}
-            label="Chat"
-            active={currentView === 'CHAT'}
-            onClick={() => navigate('CHAT')}
-            collapsed={sidebarCollapsed}
-          />
           <NavItem
             icon={<Settings className="w-5 h-5" />}
             label="Settings"

@@ -1,43 +1,42 @@
-
 export enum UserRole {
-  USER = 'User',
-  TENANT_ADMIN = 'Tenant Admin',
-  SUPER_ADMIN = 'Super Admin',
+  USER = "User",
+  TENANT_ADMIN = "Tenant Admin",
+  SUPER_ADMIN = "Super Admin",
 }
 
 export enum InstanceStatus {
   // Legacy/Existing
-  ONLINE = 'Online',
-  OFFLINE = 'Offline',
-  BOOTSTRAPPING = 'Bootstrapping',
-  PROVISIONED = 'Provisioned',
+  ONLINE = "Online",
+  OFFLINE = "Offline",
+  BOOTSTRAPPING = "Bootstrapping",
+  PROVISIONED = "Provisioned",
 
   // Lifecycle States
-  DRAFT = 'Draft',
-  PENDING_APPROVAL = 'Pending Approval',
-  PENDING_REGISTRATION = 'Pending Registration',
-  APPROVED = 'Approved',
-  ACTIVE = 'Active', // Synonymous with Online often
-  INACTIVE = 'Inactive',
-  PROVISIONING = 'Provisioning',
-  ERROR = 'Error',
-  SUSPENDED = 'Suspended',
-  EXPIRING = 'Expiring',
+  DRAFT = "Draft",
+  PENDING_APPROVAL = "Pending Approval",
+  PENDING_REGISTRATION = "Pending Registration",
+  APPROVED = "Approved",
+  ACTIVE = "Active", // Synonymous with Online often
+  INACTIVE = "Inactive",
+  PROVISIONING = "Provisioning",
+  ERROR = "Error",
+  SUSPENDED = "Suspended",
+  EXPIRING = "Expiring",
 }
 
 export enum Tier {
-  STARTER = 'Starter',
-  PRO = 'Pro',
-  ENTERPRISE = 'Enterprise',
+  STARTER = "Starter",
+  PRO = "Pro",
+  ENTERPRISE = "Enterprise",
 }
 
 export enum NotificationType {
-  INFO = 'info',
-  SUCCESS = 'success',
-  WARNING = 'warning',
-  ERROR = 'error',
-  INSTANCE = 'instance',
-  SYSTEM = 'system',
+  INFO = "info",
+  SUCCESS = "success",
+  WARNING = "warning",
+  ERROR = "error",
+  INSTANCE = "instance",
+  SYSTEM = "system",
 }
 
 export interface Notification {
@@ -55,6 +54,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  tenantId?: string; // Associate user with tenant for data scoping
   avatar: string;
   mfaEnabled?: boolean;
   phone?: string;
@@ -73,8 +73,9 @@ export interface Instance {
   created: string;
   health: number; // 0-100
   licenseKey?: string;
-  lastSeen?: string;      // New field
+  lastSeen?: string; // New field
   licenseExpiry?: string; // New field
+  tenantId?: string; // Associate instance with tenant
 }
 
 export interface InstanceConfiguration {
@@ -113,18 +114,19 @@ export interface Appointment {
   customerName: string;
   date: string;
   time: string;
-  status: 'Confirmed' | 'Pending' | 'Cancelled';
+  status: "Confirmed" | "Pending" | "Cancelled";
   assignedBot: string;
+  tenantId?: string; // Associate appointment with tenant
 }
 
 export interface ChatMessage {
   id: string;
-  sender: 'user' | 'ai' | 'system'; // 'user' is visitor, 'ai' is bot, 'system' is agent/admin
+  sender: "user" | "ai" | "system"; // 'user' is visitor, 'ai' is bot, 'system' is agent/admin
   text: string;
   timestamp: string;
   attachment?: {
     name: string;
-    type: 'image' | 'file';
+    type: "image" | "file";
     url?: string;
   };
 }
@@ -142,15 +144,15 @@ export interface Tenant {
   name: string;
   plan: string;
   users: number;
-  status: 'Active' | 'Suspended';
+  status: "Active" | "Suspended";
 }
 
 export interface McpProvider {
   id: string;
   name: string;
   description: string;
-  category: 'Database' | 'Productivity' | 'Payment' | 'Search';
-  status: 'Installed' | 'Available' | 'Update Available';
+  category: "Database" | "Productivity" | "Payment" | "Search";
+  status: "Installed" | "Available" | "Update Available";
   icon: string;
   version: string; // Latest available version
   installedVersion?: string; // Currently installed version
@@ -158,8 +160,8 @@ export interface McpProvider {
 }
 
 export interface DashboardSettings {
-  theme: 'light' | 'dark' | 'auto';
-  density: 'comfortable' | 'compact';
+  theme: "light" | "dark" | "auto";
+  density: "comfortable" | "compact";
   landingView: string;
   widgets: {
     usage: boolean;
@@ -169,7 +171,7 @@ export interface DashboardSettings {
 }
 
 export interface SyncResult {
-  status: 'success' | 'partial' | 'failure';
+  status: "success" | "partial" | "failure";
   count: number;
   message?: string;
 }
@@ -181,20 +183,20 @@ export interface RagDocument {
   type: string;
   size: number;
   uploadedAt: string;
-  status: 'Processing' | 'Indexed' | 'Failed' | 'Queued';
+  status: "Processing" | "Indexed" | "Failed" | "Queued";
 }
 
 export interface IntegrationHealth {
   id: string;
   name: string;
-  status: 'Healthy' | 'Degraded' | 'Error' | 'Inactive';
+  status: "Healthy" | "Degraded" | "Error" | "Inactive";
   successRate: number;
   lastCall: string;
   lastError?: string;
 }
 
 export interface InstanceMonitoringStats {
-  status: 'Healthy' | 'Degraded' | 'Unhealthy' | 'Unknown';
+  status: "Healthy" | "Degraded" | "Unhealthy" | "Unknown";
   lastUpdated: string;
   cpu: number; // percentage
   memoryUsed: number; // MB
@@ -211,14 +213,14 @@ export interface InstanceMonitoringStats {
     queriesMonthLimit: number;
     storageUsed: number; // MB
     storageLimit: number; // MB
-  }
+  };
 }
 
 export interface InstanceIntegration {
   id: string;
   name: string;
   identifier?: string; // e.g. remote_mcp.erpnext
-  status: 'Enabled' | 'Disabled';
+  status: "Enabled" | "Disabled";
   icon: string;
   config?: Record<string, string>;
   lastSync?: string;
@@ -259,8 +261,19 @@ export interface InstanceBranding {
   welcomeMessage: string;
   inputPlaceholder: string;
   quickSuggestions: string[];
-  position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-  theme: 'light' | 'dark';
+  position: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  theme: "light" | "dark";
 }
 
-export type ViewState = 'LOGIN' | 'DASHBOARD' | 'INSTANCES' | 'INSTANCE_DETAIL' | 'ANALYTICS' | 'SETTINGS' | 'USERS' | 'CHAT' | 'APPOINTMENTS' | 'TENANTS' | 'MCP_MARKETPLACE';
+export type ViewState =
+  | "LOGIN"
+  | "DASHBOARD"
+  | "INSTANCES"
+  | "INSTANCE_DETAIL"
+  | "ANALYTICS"
+  | "SETTINGS"
+  | "USERS"
+  | "CHAT"
+  | "APPOINTMENTS"
+  | "TENANTS"
+  | "MCP_MARKETPLACE";

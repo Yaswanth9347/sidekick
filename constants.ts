@@ -190,9 +190,10 @@ export const PRODUCTS = [
 ];
 
 export const MOCK_APPOINTMENTS: Appointment[] = [
-  { id: 'apt-1', customerName: 'Sarah Connor', date: '2023-11-10', time: '14:00', status: 'Confirmed', assignedBot: 'Sales-Bot-01' },
-  { id: 'apt-2', customerName: 'John Doe', date: '2023-11-12', time: '09:30', status: 'Pending', assignedBot: 'Support-Alpha' },
-  { id: 'apt-3', customerName: 'Emily Clark', date: '2023-11-12', time: '11:00', status: 'Cancelled', assignedBot: 'Sales-Bot-01' },
+  { id: 'apt-1', customerName: 'Sarah Connor', date: '2023-11-10', time: '14:00', status: 'Confirmed', assignedBot: 'Sales-Bot-01', tenantId: 't1' },
+  { id: 'apt-2', customerName: 'John Doe', date: '2023-11-12', time: '09:30', status: 'Pending', assignedBot: 'Support-Alpha', tenantId: 't1' },
+  { id: 'apt-3', customerName: 'Emily Clark', date: '2023-11-12', time: '11:00', status: 'Cancelled', assignedBot: 'Sales-Bot-01', tenantId: 't2' },
+  { id: 'apt-4', customerName: 'Michael Smith', date: '2023-11-15', time: '10:00', status: 'Confirmed', assignedBot: 'Demo-Specialist', tenantId: 't2' },
 ];
 
 export const MOCK_CHAT_ROOMS: ChatRoom[] = [
@@ -202,9 +203,11 @@ export const MOCK_CHAT_ROOMS: ChatRoom[] = [
 ];
 
 export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Alex Sterling', email: 'alex@pairmind.ai', role: UserRole.SUPER_ADMIN, avatar: 'https://picsum.photos/100/100' },
-  { id: 'u2', name: 'Jamie Chen', email: 'jamie@pairmind.ai', role: UserRole.TENANT_ADMIN, avatar: 'https://picsum.photos/101/101' },
-  { id: 'u3', name: 'Sam Wilson', email: 'sam@company.com', role: UserRole.USER, avatar: 'https://picsum.photos/102/102' },
+  { id: 'u1', name: 'Alex Sterling', email: 'alex@pairmind.ai', role: UserRole.SUPER_ADMIN, tenantId: undefined, avatar: 'https://picsum.photos/100/100' },
+  { id: 'u2', name: 'Jamie Chen', email: 'jamie@pairmind.ai', role: UserRole.TENANT_ADMIN, tenantId: 't1', avatar: 'https://picsum.photos/101/101' },
+  { id: 'u3', name: 'Sam Wilson', email: 'sam@company.com', role: UserRole.USER, tenantId: 't1', avatar: 'https://picsum.photos/102/102' },
+  { id: 'u4', name: 'Taylor Admin', email: 'taylor@startup.com', role: UserRole.TENANT_ADMIN, tenantId: 't2', avatar: 'https://picsum.photos/103/103' },
+  { id: 'u5', name: 'Morgan User', email: 'morgan@startup.com', role: UserRole.USER, tenantId: 't2', avatar: 'https://picsum.photos/104/104' },
 ];
 
 export const MOCK_TENANTS: Tenant[] = [

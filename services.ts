@@ -571,11 +571,43 @@ export const SettingsService = {
 };
 
 export const AccessControlService = {
+  // Tenant Management (Super Admin only)
   canDeleteTenant: (user: User) => user.role === UserRole.SUPER_ADMIN,
+  canCreateTenant: (user: User) => user.role === UserRole.SUPER_ADMIN,
+  canAccessTenants: (user: User) => user.role === UserRole.SUPER_ADMIN,
+  
+  // User Management
   canManageUsers: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
+  canAssignSuperAdminRole: (user: User) => user.role === UserRole.SUPER_ADMIN,
+  
+  // Tenant Data Access (Super Admin CANNOT access)
+  canAccessTenantData: (user: User) => user.role !== UserRole.SUPER_ADMIN,
+  
+  // Appointments
+  canViewAppointments: (user: User) => user.role !== UserRole.SUPER_ADMIN,
+  canManageAppointments: (user: User) => user.role === UserRole.TENANT_ADMIN,
+  canCreateAppointment: (user: User) => user.role === UserRole.TENANT_ADMIN,
+  
+  // Chat
+  canViewChat: (user: User) => user.role !== UserRole.SUPER_ADMIN,
+  canSendMessages: (user: User) => user.role === UserRole.TENANT_ADMIN,
+  
+  // Instances
+  canManageInstances: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
+  canCreateInstance: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
+  
+  // Platform Features
+  canAccessMcpMarketplace: (user: User) => user.role === UserRole.SUPER_ADMIN,
+  
+  // General Permissions
   canRotateKeys: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
   canManageBilling: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
   canEditConfiguration: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
+  canModifyData: (user: User) => user.role !== UserRole.USER,
+  
+  // Helper to check if user sees global or tenant-scoped data
+  isGlobalScope: (user: User) => user.role === UserRole.SUPER_ADMIN,
+  isTenantScope: (user: User) => user.role !== UserRole.SUPER_ADMIN,
 };
 
 export const AnalyticsService = {
