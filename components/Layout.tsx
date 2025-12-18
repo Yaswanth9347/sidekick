@@ -7,8 +7,9 @@ import {
   LayoutDashboard, Server, Users, Settings,
   MessageSquare, Calendar, LogOut, Bell,
   Menu, X, Box, PieChart, Puzzle, Check, Trash2, Eye, AlertCircle, CheckCircle, Info, AlertTriangle,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Bot
 } from 'lucide-react';
+import { Agent } from './Agent';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -39,6 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -162,13 +164,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => navigate('APPOINTMENTS')}
                 collapsed={sidebarCollapsed}
               />
-              <NavItem
-                icon={<MessageSquare className="w-5 h-5" />}
-                label="Chat"
-                active={currentView === 'CHAT'}
-                onClick={() => navigate('CHAT')}
-                collapsed={sidebarCollapsed}
-              />
+
             </>
           )}
 
@@ -188,13 +184,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => navigate('APPOINTMENTS')}
                 collapsed={sidebarCollapsed}
               />
-              <NavItem
-                icon={<MessageSquare className="w-5 h-5" />}
-                label="Chat"
-                active={currentView === 'CHAT'}
-                onClick={() => navigate('CHAT')}
-                collapsed={sidebarCollapsed}
-              />
+
             </>
           )}
 
@@ -369,11 +359,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </button>
         </div >
 
-        {/* Scrollable Content */}
-        < main className="flex-1 p-4 md:p-8 overflow-y-auto pt-16 lg:pt-8" >
-          {children}
-        </main >
-      </div >
+        {/* Main Content Area with Split Layout */}
+        <div className="flex flex-1 overflow-hidden relative">
+          <main className={`flex-1 p-4 md:p-8 overflow-y-auto pt-16 lg:pt-8 transition-all duration-300 ${agentOpen ? 'mr-0 lg:mr-[25%] lg:w-[75%]' : ''}`} >
+            {children}
+          </main>
+
+          {/* Agent Panel */}
+          <div className={`fixed inset-y-0 right-0 z-40 bg-surface border-l border-white/10 shadow-2xl transition-transform duration-300 lg:absolute lg:z-0 ${agentOpen ? 'translate-x-0 w-full lg:w-[25%]' : 'translate-x-full w-full lg:w-[25%]'}`}>
+            {agentOpen && <Agent onClose={() => setAgentOpen(false)} />}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Agent Floating Button */}
+      {!agentOpen && (
+        <button
+          onClick={() => setAgentOpen(true)}
+          className="fixed bottom-6 right-6 z-50 p-3.5 bg-primary text-white rounded-full shadow-neon hover:scale-110 transition-transform animate-bounce-subtle"
+          title="Open AI Agent"
+        >
+          <Bot className="w-6 h-6" />
+        </button>
+      )}
 
       {/* Mobile Menu Overlay */}
       {
@@ -399,12 +408,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   label="Instances"
                   active={currentView === 'INSTANCES'}
                   onClick={() => { navigate('INSTANCES'); setMobileMenuOpen(false); }}
-                />
-                <NavItem
-                  icon={<MessageSquare className="w-5 h-5" />}
-                  label="Chat"
-                  active={currentView === 'CHAT'}
-                  onClick={() => { navigate('CHAT'); setMobileMenuOpen(false); }}
                 />
               </nav>
             </div>

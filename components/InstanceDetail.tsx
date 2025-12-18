@@ -10,7 +10,7 @@ import {
    Terminal, Trash, X, ShieldCheck, ToggleLeft, ToggleRight, Save, Clock, RotateCcw,
    AlertTriangle, UploadCloud, File, Info, HardDrive, Layers, Server, Activity, XCircle,
    Puzzle, ChevronDown, ChevronUp, Briefcase, Package, Trello, Settings2, Power, Eye, EyeOff,
-   MessageSquare, Send, Minus, Plus
+   MessageSquare, Send, Minus, Plus, Play, Square
 } from 'lucide-react';
 import {
    AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
@@ -895,6 +895,24 @@ const InstanceDetail: React.FC = () => {
       }, 3000);
    };
 
+   const handleStart = () => {
+      onUpdateStatus(instance.id, InstanceStatus.ONLINE);
+      notify(`${instance.name} started.`, 'success');
+   };
+
+   const handleStop = () => {
+      onUpdateStatus(instance.id, InstanceStatus.OFFLINE);
+      notify(`${instance.name} stopped.`, 'info');
+   };
+
+   const handleRestart = async () => {
+      onUpdateStatus(instance.id, InstanceStatus.OFFLINE);
+      notify(`Restarting ${instance.name}...`, 'info');
+      await new Promise(r => setTimeout(r, 2000));
+      onUpdateStatus(instance.id, InstanceStatus.ONLINE);
+      notify(`${instance.name} restarted.`, 'success');
+   };
+
    const handleDownloadBinary = async () => {
       setIsDownloading(true);
       try {
@@ -1255,8 +1273,30 @@ const InstanceDetail: React.FC = () => {
                   </button>
                )}
 
+
+               {(instance.status === InstanceStatus.OFFLINE || instance.status === InstanceStatus.INACTIVE) && (
+                  <button
+                     onClick={handleStart}
+                     className="px-4 py-2 bg-success text-white hover:bg-green-600 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 shadow-neon"
+                  >
+                     <Play className="w-4 h-4 fill-current" /> Start Instance
+                  </button>
+               )}
+
                {(instance.status === InstanceStatus.ONLINE || instance.status === InstanceStatus.ACTIVE) && (
                   <>
+                     <button
+                        onClick={handleStop}
+                        className="px-4 py-2 bg-danger/10 border border-danger/20 text-danger hover:bg-danger/20 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2"
+                     >
+                        <Square className="w-4 h-4 fill-current" /> Stop
+                     </button>
+                     <button
+                        onClick={handleRestart}
+                        className="px-4 py-2 bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2"
+                     >
+                        <RotateCcw className="w-4 h-4" /> Restart
+                     </button>
                      <button
                         onClick={handleDownloadBootstrap}
                         disabled={isDownloadingBoot}

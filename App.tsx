@@ -7,7 +7,7 @@ import InstanceList from './components/InstanceList';
 import InstanceDetail from './components/InstanceDetail';
 import Settings from './components/Settings';
 import Users from './components/Users';
-import Chat from './components/Chat';
+
 import Appointments from './components/Appointments';
 import Tenants from './components/Tenants';
 import Analytics from './components/Analytics';
@@ -57,7 +57,7 @@ const MainContent = () => {
           {currentView === 'INSTANCE_DETAIL' && selectedInstance && <InstanceDetail />}
           {currentView === 'SETTINGS' && <Settings />}
           {currentView === 'USERS' && <Users />}
-          {currentView === 'CHAT' && <Chat />}
+
           {currentView === 'APPOINTMENTS' && <Appointments />}
           {currentView === 'TENANTS' && <Tenants />}
           {currentView === 'ANALYTICS' && <Analytics />}
