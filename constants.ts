@@ -190,10 +190,10 @@ export const PRODUCTS = [
 ];
 
 export const MOCK_APPOINTMENTS: Appointment[] = [
-  { id: 'apt-1', customerName: 'Sarah Connor', date: '2023-11-10', time: '14:00', status: 'Confirmed', assignedBot: 'Sales-Bot-01', tenantId: 't1' },
+  { id: 'apt-1', customerName: 'Sarah Connor', date: '2023-11-10', time: '14:00', status: 'Confirmed', assignedBot: 'Sales-Bot-01', tenantId: 't1', isPriority: true },
   { id: 'apt-2', customerName: 'John Doe', date: '2023-11-12', time: '09:30', status: 'Pending', assignedBot: 'Support-Alpha', tenantId: 't1' },
   { id: 'apt-3', customerName: 'Emily Clark', date: '2023-11-12', time: '11:00', status: 'Cancelled', assignedBot: 'Sales-Bot-01', tenantId: 't2' },
-  { id: 'apt-4', customerName: 'Michael Smith', date: '2023-11-15', time: '10:00', status: 'Confirmed', assignedBot: 'Demo-Specialist', tenantId: 't2' },
+  { id: 'apt-4', customerName: 'Michael Smith', date: '2023-11-15', time: '10:00', status: 'Confirmed', assignedBot: 'Demo-Specialist', tenantId: 't2', isPriority: true },
 ];
 
 export const MOCK_CHAT_ROOMS: ChatRoom[] = [

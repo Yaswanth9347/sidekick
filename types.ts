@@ -118,6 +118,7 @@ export interface Appointment {
   status: "Confirmed" | "Pending" | "Cancelled";
   assignedBot: string;
   tenantId?: string; // Associate appointment with tenant
+  isPriority?: boolean; // NEW: Mark appointment as priority
 }
 
 export interface ChatMessage {
