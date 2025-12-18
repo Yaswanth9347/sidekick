@@ -59,17 +59,17 @@ export const AuthService = {
     // Find in storage or fall back to mock logic
     const users = Storage.get<User[]>(KEYS.USERS, []);
     const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
+
     if (existing) {
-       sessionStorage.setItem('pm_session', JSON.stringify(existing));
-       return existing;
+      sessionStorage.setItem('pm_session', JSON.stringify(existing));
+      return existing;
     }
 
     // Fallback for demo if not in storage (auto-create for unregistered emails in demo)
     let role = UserRole.USER;
     if (email.toLowerCase().includes('super')) role = UserRole.SUPER_ADMIN;
     else if (email.toLowerCase().includes('admin')) role = UserRole.TENANT_ADMIN;
-    
+
     const user: User = {
       id: `u-${Date.now().toString(36)}`,
       name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()),
@@ -81,15 +81,15 @@ export const AuthService = {
       username: email.split('@')[0].replace('.', '_').toLowerCase(),
       language: 'English (United States)'
     };
-    
+
     // Store session
     sessionStorage.setItem('pm_session', JSON.stringify(user));
     return user;
   },
-  
+
   verifyMfa: async (code: string): Promise<boolean> => {
     await delay(600);
-    return code.length === 6; 
+    return code.length === 6;
   },
 
   logout: async () => {
@@ -136,7 +136,7 @@ export const InstanceService = {
       'Updating vector embeddings for doc_id_992.',
       'Connection pool size: 45/100'
     ];
-    
+
     // Generate realistic looking logs
     const logs = Array.from({ length: 50 }, (_, i) => {
       const date = new Date(Date.now() - i * 1000 * (Math.random() * 10)).toISOString();
@@ -144,12 +144,12 @@ export const InstanceService = {
       const comp = components[Math.floor(Math.random() * components.length)];
       const msg = messages[Math.floor(Math.random() * messages.length)];
       const latency = Math.floor(Math.random() * 200) + 20;
-      
+
       let logLine = `[${date}] [${level}] [${comp}] ${msg}`;
       if (level === 'INFO') logLine += ` Latency: ${latency}ms`;
       return logLine;
     });
-    
+
     return logs.reverse();
   },
   clearCache: async (id: string): Promise<void> => {
@@ -169,11 +169,11 @@ export const InstanceService = {
   updateConfiguration: async (id: string, config: InstanceConfiguration, author: string): Promise<InstanceConfiguration> => {
     await delay(800);
     const allConfigs = Storage.get<Record<string, InstanceConfiguration>>(KEYS.CONFIGURATIONS, {});
-    
+
     // Save current as history before updating
     const history = Storage.get<Record<string, ConfigurationHistoryItem[]>>(KEYS.CONFIG_HISTORY, {});
     const instanceHistory = history[id] || [];
-    
+
     const newHistoryItem: ConfigurationHistoryItem = {
       id: `hist-${Date.now()}`,
       versionId: `v${instanceHistory.length + 1}.${Date.now().toString().slice(-4)}`,
@@ -181,14 +181,14 @@ export const InstanceService = {
       timestamp: new Date().toISOString(),
       author
     };
-    
+
     history[id] = [newHistoryItem, ...instanceHistory];
     Storage.set(KEYS.CONFIG_HISTORY, history);
 
     // Update current config
     allConfigs[id] = config;
     Storage.set(KEYS.CONFIGURATIONS, allConfigs);
-    
+
     return config;
   },
   getConfigurationHistory: async (id: string): Promise<ConfigurationHistoryItem[]> => {
@@ -201,7 +201,7 @@ export const InstanceService = {
     const history = Storage.get<Record<string, ConfigurationHistoryItem[]>>(KEYS.CONFIG_HISTORY, {});
     const instanceHistory = history[id] || [];
     const targetVersion = instanceHistory.find(h => h.versionId === versionId);
-    
+
     if (!targetVersion) throw new Error("Version not found");
 
     // Apply rollback as a new update to preserve forward history
@@ -231,13 +231,13 @@ export const InstanceService = {
   getMonitoringStats: async (id: string): Promise<InstanceMonitoringStats> => {
     await delay(300); // Fast response for monitoring
     const now = new Date().toISOString();
-    
+
     // Simulate data fluctuations
     const cpu = Math.floor(Math.random() * 60) + 10;
     const mem = Math.floor(Math.random() * 1500) + 500;
     const disk = Math.floor(Math.random() * 5000) + 2000;
     const sessions = Math.floor(Math.random() * 30) + 5;
-    
+
     return {
       status: Math.random() > 0.1 ? 'Healthy' : 'Degraded',
       lastUpdated: now,
@@ -267,7 +267,7 @@ export const InstanceService = {
   getIntegrations: async (id: string): Promise<InstanceIntegration[]> => {
     await delay(600);
     const allIntegrations = Storage.get<Record<string, InstanceIntegration[]>>(KEYS.INTEGRATIONS, {});
-    
+
     // Return existing or initialize defaults
     if (allIntegrations[id]) {
       return allIntegrations[id];
@@ -280,11 +280,11 @@ export const InstanceService = {
       { id: 'jira', name: 'Jira', identifier: 'atlassian-jira', status: 'Disabled', icon: 'trello' },
       { id: 'odoo', name: 'Odoo', identifier: 'odoo-connector', status: 'Disabled', icon: 'package' },
     ];
-    
+
     // Save defaults
     allIntegrations[id] = defaults;
     Storage.set(KEYS.INTEGRATIONS, allIntegrations);
-    
+
     return defaults;
   },
   saveIntegrations: async (id: string, integrations: InstanceIntegration[]): Promise<void> => {
@@ -296,7 +296,7 @@ export const InstanceService = {
   getPolicies: async (id: string): Promise<InstancePolicy> => {
     await delay(500);
     const allPolicies = Storage.get<Record<string, InstancePolicy>>(KEYS.POLICIES, {});
-    
+
     if (allPolicies[id]) {
       return allPolicies[id];
     }
@@ -363,7 +363,7 @@ export const RagService = {
   uploadDocument: async (instanceId: string, file: File): Promise<RagDocument> => {
     await delay(1500); // Upload simulation
     const allDocs = Storage.get<RagDocument[]>(KEYS.RAG_DOCUMENTS, []);
-    
+
     const newDoc: RagDocument = {
       id: `doc-${Date.now()}`,
       instanceId,
@@ -373,14 +373,14 @@ export const RagService = {
       uploadedAt: new Date().toISOString(),
       status: 'Processing'
     };
-    
+
     Storage.set(KEYS.RAG_DOCUMENTS, [newDoc, ...allDocs]);
-    
+
     // Simulate background processing (Processing -> Indexed)
     setTimeout(() => {
-       const currentDocs = Storage.get<RagDocument[]>(KEYS.RAG_DOCUMENTS, []);
-       const updated = currentDocs.map(d => d.id === newDoc.id ? { ...d, status: 'Indexed' } : d);
-       Storage.set(KEYS.RAG_DOCUMENTS, updated);
+      const currentDocs = Storage.get<RagDocument[]>(KEYS.RAG_DOCUMENTS, []);
+      const updated = currentDocs.map(d => d.id === newDoc.id ? { ...d, status: 'Indexed' } : d);
+      Storage.set(KEYS.RAG_DOCUMENTS, updated);
     }, 5000);
 
     return newDoc;
@@ -402,8 +402,8 @@ export const TenantService = {
     Storage.set(KEYS.TENANTS, tenants);
   },
   rotateApiKey: async (tenantId: string): Promise<{ publishableKey: string; secretKey: string }> => {
-    await delay(1500); 
-    const randomString = (length: number) => Array.from({length}, () => Math.floor(Math.random() * 36).toString(36)).join('');
+    await delay(1500);
+    const randomString = (length: number) => Array.from({ length }, () => Math.floor(Math.random() * 36).toString(36)).join('');
     return {
       publishableKey: `pk_live_${randomString(24)}`,
       secretKey: `sk_live_${randomString(32)}`
@@ -431,7 +431,7 @@ export const UserService = {
     // Also update session if it matches
     const currentSession = AuthService.getCurrentUser();
     if (currentSession && currentSession.id === user.id) {
-       sessionStorage.setItem('pm_session', JSON.stringify(user));
+      sessionStorage.setItem('pm_session', JSON.stringify(user));
     }
     return user;
   },
@@ -453,21 +453,21 @@ export const AppointmentService = {
   syncCalendar: async (provider: 'google' | 'outlook'): Promise<SyncResult> => {
     await delay(2500); // Simulate network sync time
     const rand = Math.random();
-    
+
     // Simulate different outcomes
     if (rand > 0.85) {
       throw new Error('OAuth token expired. Please reconnect your account.');
     } else if (rand > 0.6) {
-      return { 
-        status: 'partial', 
+      return {
+        status: 'partial',
         count: Math.floor(Math.random() * 3) + 1,
-        message: 'Some events could not be imported due to conflicts.' 
+        message: 'Some events could not be imported due to conflicts.'
       };
     } else {
-      return { 
-        status: 'success', 
+      return {
+        status: 'success',
         count: Math.floor(Math.random() * 10) + 2,
-        message: 'All upcoming events synced successfully.' 
+        message: 'All upcoming events synced successfully.'
       };
     }
   }
@@ -490,13 +490,13 @@ export const McpService = {
     const provider = list.find(p => p.id === id);
     if (!provider) throw new Error('Provider not found');
 
-    const updated: McpProvider = { 
-      ...provider, 
-      status: 'Installed', 
+    const updated: McpProvider = {
+      ...provider,
+      status: 'Installed',
       installedVersion: provider.version,
-      isConfigured: false 
+      isConfigured: false
     };
-    
+
     const updatedList = list.map(p => p.id === id ? updated : p);
     Storage.set(KEYS.PROVIDERS, updatedList);
     return updated;
@@ -507,12 +507,12 @@ export const McpService = {
     const provider = list.find(p => p.id === id);
     if (!provider) throw new Error('Provider not found');
 
-    const updated: McpProvider = { 
-      ...provider, 
-      status: 'Installed', 
+    const updated: McpProvider = {
+      ...provider,
+      status: 'Installed',
       installedVersion: provider.version
     };
-    
+
     const updatedList = list.map(p => p.id === id ? updated : p);
     Storage.set(KEYS.PROVIDERS, updatedList);
     return updated;
@@ -523,11 +523,11 @@ export const McpService = {
     const provider = list.find(p => p.id === id);
     if (!provider) throw new Error('Provider not found');
 
-    const updated: McpProvider = { 
-      ...provider, 
-      isConfigured: true 
+    const updated: McpProvider = {
+      ...provider,
+      isConfigured: true
     };
-    
+
     const updatedList = list.map(p => p.id === id ? updated : p);
     Storage.set(KEYS.PROVIDERS, updatedList);
     return updated;
@@ -538,13 +538,13 @@ export const McpService = {
     const provider = list.find(p => p.id === id);
     if (!provider) throw new Error('Provider not found');
 
-    const updated: McpProvider = { 
-      ...provider, 
-      status: 'Available', 
+    const updated: McpProvider = {
+      ...provider,
+      status: 'Available',
       installedVersion: undefined,
       isConfigured: false
     };
-    
+
     const updatedList = list.map(p => p.id === id ? updated : p);
     Storage.set(KEYS.PROVIDERS, updatedList);
     return updated;
@@ -561,7 +561,7 @@ export const SettingsService = {
       landingView: 'Home dashboard',
       widgets: { usage: true, announcements: true, actions: false }
     };
-    
+
     return Storage.get(key, defaults);
   },
   saveSettings: async (userId: string, settings: DashboardSettings) => {
@@ -575,36 +575,42 @@ export const AccessControlService = {
   canDeleteTenant: (user: User) => user.role === UserRole.SUPER_ADMIN,
   canCreateTenant: (user: User) => user.role === UserRole.SUPER_ADMIN,
   canAccessTenants: (user: User) => user.role === UserRole.SUPER_ADMIN,
-  
+
   // User Management
+  // Tenant Admins manage their tenant's users. Super Admins manage global admins but NOT tenant users.
   canManageUsers: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
+  canManageGlobalUsers: (user: User) => user.role === UserRole.SUPER_ADMIN,
   canAssignSuperAdminRole: (user: User) => user.role === UserRole.SUPER_ADMIN,
-  
-  // Tenant Data Access (Super Admin CANNOT access)
-  canAccessTenantData: (user: User) => user.role !== UserRole.SUPER_ADMIN,
-  
+
+  // Tenant Data Access (Super Admin NOW HAS ACCESS)
+  canAccessTenantData: (user: User) => true,
+
   // Appointments
-  canViewAppointments: (user: User) => user.role !== UserRole.SUPER_ADMIN,
-  canManageAppointments: (user: User) => user.role === UserRole.TENANT_ADMIN,
-  canCreateAppointment: (user: User) => user.role === UserRole.TENANT_ADMIN,
-  
+  canViewAppointments: (user: User) => true,
+  canManageAppointments: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
+  canCreateAppointment: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN, // User role can also create (Limited), handled by override or specific check
+
   // Chat
-  canViewChat: (user: User) => user.role !== UserRole.SUPER_ADMIN,
-  canSendMessages: (user: User) => user.role === UserRole.TENANT_ADMIN,
-  
+  canViewChat: (user: User) => true,
+  canSendMessages: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN || user.role === UserRole.USER,
+
   // Instances
+  // Regular users cannot view instances
+  canViewInstances: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN || user.role === UserRole.TENANT_READ_ONLY,
   canManageInstances: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
   canCreateInstance: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
-  
+
   // Platform Features
-  canAccessMcpMarketplace: (user: User) => user.role === UserRole.SUPER_ADMIN,
-  
+  // Read-only can view MCP providers
+  canAccessMcpMarketplace: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN || user.role === UserRole.TENANT_READ_ONLY,
+  canManageMcpProviders: (user: User) => user.role === UserRole.SUPER_ADMIN,
+
   // General Permissions
   canRotateKeys: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
   canManageBilling: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
   canEditConfiguration: (user: User) => user.role === UserRole.SUPER_ADMIN || user.role === UserRole.TENANT_ADMIN,
-  canModifyData: (user: User) => user.role !== UserRole.USER,
-  
+  canModifyData: (user: User) => user.role !== UserRole.USER && user.role !== UserRole.TENANT_READ_ONLY,
+
   // Helper to check if user sees global or tenant-scoped data
   isGlobalScope: (user: User) => user.role === UserRole.SUPER_ADMIN,
   isTenantScope: (user: User) => user.role !== UserRole.SUPER_ADMIN,
@@ -616,18 +622,18 @@ export const AnalyticsService = {
     const days = range === '7D' ? 7 : range === '30D' ? 30 : 90;
     const data: AnalyticsData[] = [];
     const today = new Date();
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dayName = range === '7D' 
+      const dayName = range === '7D'
         ? date.toLocaleDateString('en-US', { weekday: 'short' })
         : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
       const baseQueries = 2000;
       const randomVar = Math.random() * 1500;
       const queries = Math.floor(baseQueries + randomVar);
-      
+
       data.push({
         name: dayName,
         queries: queries,
@@ -643,12 +649,12 @@ export const ChatService = {
   getMessages: async (roomId: string): Promise<ChatMessage[]> => {
     await delay(400);
     return [
-       { id: 'm1', sender: 'user', text: 'Hi, I was looking at the enterprise plan pricing but I have a few questions about volume discounts.', timestamp: '10:42 AM' },
-       { id: 'm2', sender: 'ai', text: 'Hello! I\'d be happy to help you with that. Our enterprise volume discounts start at 50k requests/month. Would you like to see the full breakdown?', timestamp: '10:43 AM' },
-       { id: 'm3', sender: 'user', text: 'Yes, please send that over. Also, do you support SSO?', timestamp: '10:44 AM' }
+      { id: 'm1', sender: 'user', text: 'Hi, I was looking at the enterprise plan pricing but I have a few questions about volume discounts.', timestamp: '10:42 AM' },
+      { id: 'm2', sender: 'ai', text: 'Hello! I\'d be happy to help you with that. Our enterprise volume discounts start at 50k requests/month. Would you like to see the full breakdown?', timestamp: '10:43 AM' },
+      { id: 'm3', sender: 'user', text: 'Yes, please send that over. Also, do you support SSO?', timestamp: '10:44 AM' }
     ];
   },
-  
+
   sendMessage: async (roomId: string, text: string, attachment?: File): Promise<ChatMessage> => {
     await delay(300); // Simulate network send
     return {
@@ -656,8 +662,8 @@ export const ChatService = {
       sender: 'system',
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      attachment: attachment ? { 
-        name: attachment.name, 
+      attachment: attachment ? {
+        name: attachment.name,
         type: attachment.type.startsWith('image/') ? 'image' : 'file',
         url: URL.createObjectURL(attachment)
       } : undefined
@@ -666,24 +672,24 @@ export const ChatService = {
 
   subscribe: (roomId: string, onMessage: (msg: ChatMessage) => void, onTyping: (typing: boolean) => void) => {
     const timeout = setTimeout(() => {
-        onTyping(true);
-        setTimeout(() => {
-          onTyping(false);
-          const responses = [
-            "That sounds great, thanks!",
-            "Could you clarify the SLA for that?",
-            "I'm also interested in the API limits.",
-            "Let me check with my team.",
-            "Thanks for the info.",
-            "Do you offer annual billing options?"
-          ];
-          onMessage({
-            id: `m-${Date.now()}`,
-            sender: 'user', // The visitor
-            text: responses[Math.floor(Math.random() * responses.length)],
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-        }, 2000);
+      onTyping(true);
+      setTimeout(() => {
+        onTyping(false);
+        const responses = [
+          "That sounds great, thanks!",
+          "Could you clarify the SLA for that?",
+          "I'm also interested in the API limits.",
+          "Let me check with my team.",
+          "Thanks for the info.",
+          "Do you offer annual billing options?"
+        ];
+        onMessage({
+          id: `m-${Date.now()}`,
+          sender: 'user', // The visitor
+          text: responses[Math.floor(Math.random() * responses.length)],
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+      }, 2000);
     }, 5000 + Math.random() * 5000);
 
     return () => clearTimeout(timeout);

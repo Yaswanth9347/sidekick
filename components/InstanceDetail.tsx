@@ -646,6 +646,7 @@ const SettingsIcon = ({ className }: { className?: string }) => (
 
 const InstanceDetail: React.FC = () => {
    const { selectedInstance: instance, navigate, instances, setInstances, notify, user } = useGlobal();
+   const canManage = user ? AccessControlService.canManageInstances(user) : false;
 
    if (!instance) return null;
 
@@ -1213,16 +1214,7 @@ const InstanceDetail: React.FC = () => {
                      <h1 className="text-3xl font-bold text-slate-100">{instance.name}</h1>
                      <div className={`w-3 h-3 rounded-full ${getStatusColor(instance.status)}`} title={`Status: ${instance.status}`} />
 
-                     {/* Status Switch */}
-                     <div className="flex items-center gap-2 ml-2">
-                        <button
-                           onClick={() => onUpdateStatus(instance.id, instance.status === InstanceStatus.ONLINE ? InstanceStatus.OFFLINE : InstanceStatus.ONLINE)}
-                           className={`relative w-12 h-6 rounded-full transition-colors ${instance.status === InstanceStatus.ONLINE ? 'bg-success' : 'bg-slate-700'}`}
-                           title="Toggle Instance Status"
-                        >
-                           <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${instance.status === InstanceStatus.ONLINE ? 'left-7' : 'left-1'}`}></span>
-                        </button>
-                     </div>
+
                   </div>
 
                   <div className="flex items-center gap-3 mt-1 text-sm">
@@ -1237,7 +1229,7 @@ const InstanceDetail: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-3 pl-10 lg:pl-0">
-               {instance.status === InstanceStatus.PENDING_APPROVAL && (
+               {instance.status === InstanceStatus.PENDING_APPROVAL && canManage && (
                   <button
                      onClick={handleApprove}
                      className="px-4 py-2 bg-warning text-black hover:bg-warning/90 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2"

@@ -208,6 +208,7 @@ export const MOCK_USERS: User[] = [
   { id: 'u3', name: 'Sam Wilson', email: 'sam@company.com', role: UserRole.USER, tenantId: 't1', avatar: 'https://picsum.photos/102/102' },
   { id: 'u4', name: 'Taylor Admin', email: 'taylor@startup.com', role: UserRole.TENANT_ADMIN, tenantId: 't2', avatar: 'https://picsum.photos/103/103' },
   { id: 'u5', name: 'Morgan User', email: 'morgan@startup.com', role: UserRole.USER, tenantId: 't2', avatar: 'https://picsum.photos/104/104' },
+  { id: 'u6', name: 'Jordan ReadOnly', email: 'jordan@pairmind.ai', role: UserRole.TENANT_READ_ONLY, tenantId: 't1', avatar: 'https://picsum.photos/105/105' },
 ];
 
 export const MOCK_TENANTS: Tenant[] = [
@@ -218,52 +219,52 @@ export const MOCK_TENANTS: Tenant[] = [
 ];
 
 export const MOCK_MCP_PROVIDERS: McpProvider[] = [
-  { 
-    id: 'mcp-1', 
-    name: 'PostgreSQL Connector', 
-    description: 'Read/Write access to SQL databases via natural language.', 
-    category: 'Database', 
-    status: 'Installed', 
+  {
+    id: 'mcp-1',
+    name: 'PostgreSQL Connector',
+    description: 'Read/Write access to SQL databases via natural language.',
+    category: 'Database',
+    status: 'Installed',
     icon: 'database',
     version: '2.1.0',
     installedVersion: '2.1.0',
     isConfigured: true
   },
-  { 
-    id: 'mcp-2', 
-    name: 'Google Search Grounding', 
-    description: 'Enable real-time web search capabilities for your agents.', 
-    category: 'Search', 
-    status: 'Available', 
+  {
+    id: 'mcp-2',
+    name: 'Google Search Grounding',
+    description: 'Enable real-time web search capabilities for your agents.',
+    category: 'Search',
+    status: 'Available',
     icon: 'search',
     version: '1.5.2'
   },
-  { 
-    id: 'mcp-3', 
-    name: 'Slack Ops', 
-    description: 'Manage channels and send notifications from AI workflows.', 
-    category: 'Productivity', 
-    status: 'Update Available', 
+  {
+    id: 'mcp-3',
+    name: 'Slack Ops',
+    description: 'Manage channels and send notifications from AI workflows.',
+    category: 'Productivity',
+    status: 'Update Available',
     icon: 'message-square',
     version: '3.0.1',
     installedVersion: '2.9.8',
     isConfigured: true
   },
-  { 
-    id: 'mcp-4', 
-    name: 'Stripe Payments', 
-    description: 'Process refunds and check subscription status.', 
-    category: 'Payment', 
-    status: 'Available', 
+  {
+    id: 'mcp-4',
+    name: 'Stripe Payments',
+    description: 'Process refunds and check subscription status.',
+    category: 'Payment',
+    status: 'Available',
     icon: 'credit-card',
     version: '1.2.0'
   },
-  { 
-    id: 'mcp-5', 
-    name: 'Jira Integration', 
-    description: 'Create and update tickets directly from conversation contexts.', 
-    category: 'Productivity', 
-    status: 'Available', 
+  {
+    id: 'mcp-5',
+    name: 'Jira Integration',
+    description: 'Create and update tickets directly from conversation contexts.',
+    category: 'Productivity',
+    status: 'Available',
     icon: 'trello',
     version: '2.0.0'
   },

@@ -3,9 +3,9 @@ import React from 'react';
 import { InstanceStatus, UserRole } from '../types';
 import { PRODUCTS } from '../constants';
 import { useGlobal } from '../store';
-import { 
-  Server, Zap, Activity, MoreHorizontal, ArrowUpRight, 
-  AlertTriangle 
+import {
+  Server, Zap, Activity, MoreHorizontal, ArrowUpRight,
+  AlertTriangle
 } from 'lucide-react';
 
 const StatCard: React.FC<{ label: string; value: string | number; icon: React.ReactNode; trend?: string; trendUp?: boolean }> = ({ label, value, icon, trend, trendUp }) => (
@@ -29,13 +29,12 @@ const ProductCard: React.FC<{ name: string; description: string; status: string;
   <div className="bg-gradient-to-br from-surface to-input border border-white/5 rounded-2xl p-6 relative overflow-hidden group">
     <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-primary/20 transition-colors"></div>
     <div className="flex justify-between items-start mb-4 relative z-10">
-       <h3 className="text-lg font-bold text-slate-100">{name}</h3>
-       <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded border ${
-         status === 'Live' ? 'border-success/30 text-success' : 
-         status === 'Beta' ? 'border-accent/30 text-accent' : 'border-slate-600 text-slate-500'
-       }`}>
-         {status}
-       </span>
+      <h3 className="text-lg font-bold text-slate-100">{name}</h3>
+      <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded border ${status === 'Live' ? 'border-success/30 text-success' :
+        status === 'Beta' ? 'border-accent/30 text-accent' : 'border-slate-600 text-slate-500'
+        }`}>
+        {status}
+      </span>
     </div>
     <p className="text-slate-400 text-sm mb-6 h-10">{description}</p>
     <div className="flex justify-between items-center text-xs text-slate-500">
@@ -49,12 +48,12 @@ const ProductCard: React.FC<{ name: string; description: string; status: string;
 
 const Dashboard: React.FC = () => {
   const { user, instances, navigate, selectInstance } = useGlobal();
-  
+
   // Filter instances by tenant for non-Super Admin users
   const filteredInstances = user && user.role !== UserRole.SUPER_ADMIN && user.tenantId
     ? instances.filter(i => i.tenantId === user.tenantId)
     : instances;
-  
+
   const onlineCount = filteredInstances.filter(i => i.status === InstanceStatus.ONLINE).length;
   const totalInstances = filteredInstances.length;
 
@@ -62,12 +61,12 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       <div className="flex justify-between items-end">
         <div>
-           <h2 className="text-3xl font-bold text-slate-100 mb-2">Dashboard</h2>
-           <p className="text-slate-400">
-             {user?.role === UserRole.SUPER_ADMIN 
-               ? 'Global overview of all tenants and platform health.'
-               : 'Overview of your AI fleet and activity.'}
-           </p>
+          <h2 className="text-3xl font-bold text-slate-100 mb-2">Dashboard</h2>
+          <p className="text-slate-400">
+            {user?.role === UserRole.SUPER_ADMIN
+              ? 'Global overview of all tenants and platform health.'
+              : 'Overview of your AI fleet and activity.'}
+          </p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => navigate('INSTANCES')} className="px-4 py-2 bg-surface border border-white/10 rounded-lg text-slate-300 text-sm hover:text-white hover:bg-white/5 transition-colors">
@@ -81,31 +80,31 @@ const Dashboard: React.FC = () => {
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          label="Total Instances" 
-          value={totalInstances} 
-          icon={<Server className="w-6 h-6" />} 
+        <StatCard
+          label="Total Instances"
+          value={totalInstances}
+          icon={<Server className="w-6 h-6" />}
           trend="+2 this week"
           trendUp={true}
         />
-        <StatCard 
-          label="Online Instances" 
-          value={onlineCount} 
-          icon={<Zap className="w-6 h-6" />} 
+        <StatCard
+          label="Online Instances"
+          value={onlineCount}
+          icon={<Zap className="w-6 h-6" />}
           trend="98% uptime"
           trendUp={true}
         />
-        <StatCard 
-          label="Active Alerts" 
-          value="1" 
-          icon={<AlertTriangle className="w-6 h-6" />} 
+        <StatCard
+          label="Active Alerts"
+          value="1"
+          icon={<AlertTriangle className="w-6 h-6" />}
           trend="Needs attention"
           trendUp={false}
         />
-        <StatCard 
-          label="Total Requests" 
-          value="1.2M" 
-          icon={<Activity className="w-6 h-6" />} 
+        <StatCard
+          label="Total Requests"
+          value="1.2M"
+          icon={<Activity className="w-6 h-6" />}
           trend="+12% vs last mo"
           trendUp={true}
         />
@@ -116,9 +115,9 @@ const Dashboard: React.FC = () => {
         <h3 className="text-lg font-semibold text-slate-100 mb-4">Your Products</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {PRODUCTS.map((p, i) => (
-            <ProductCard 
-              key={i} 
-              {...p} 
+            <ProductCard
+              key={i}
+              {...p}
               onManage={() => {
                 if (p.name === 'Analyst') navigate('ANALYTICS');
                 else if (p.name === 'Guardian') navigate('SETTINGS');
@@ -154,39 +153,37 @@ const Dashboard: React.FC = () => {
                     <div className="text-xs text-slate-500">{inst.region}</div>
                   </td>
                   <td className="p-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                      inst.status === InstanceStatus.ONLINE ? 'bg-success/10 text-success border-success/20' :
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${inst.status === InstanceStatus.ONLINE ? 'bg-success/10 text-success border-success/20' :
                       inst.status === InstanceStatus.OFFLINE ? 'bg-danger/10 text-danger border-danger/20' :
-                      inst.status === InstanceStatus.BOOTSTRAPPING ? 'bg-accent/10 text-accent border-accent/20' :
-                      'bg-warning/10 text-warning border-warning/20'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                         inst.status === InstanceStatus.ONLINE ? 'bg-success' :
-                         inst.status === InstanceStatus.OFFLINE ? 'bg-danger' :
-                         inst.status === InstanceStatus.BOOTSTRAPPING ? 'bg-accent animate-pulse' :
-                         'bg-warning'
-                      }`}></span>
+                        inst.status === InstanceStatus.BOOTSTRAPPING ? 'bg-accent/10 text-accent border-accent/20' :
+                          'bg-warning/10 text-warning border-warning/20'
+                      }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${inst.status === InstanceStatus.ONLINE ? 'bg-success' :
+                        inst.status === InstanceStatus.OFFLINE ? 'bg-danger' :
+                          inst.status === InstanceStatus.BOOTSTRAPPING ? 'bg-accent animate-pulse' :
+                            'bg-warning'
+                        }`}></span>
                       {inst.status}
                     </span>
                   </td>
                   <td className="p-4 text-slate-300">
                     <span className="bg-white/5 px-2 py-1 rounded border border-white/10 text-xs">
-                       {inst.tier}
+                      {inst.tier}
                     </span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                       <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${inst.health > 80 ? 'bg-success' : inst.health > 40 ? 'bg-warning' : 'bg-danger'}`} 
-                            style={{width: `${inst.health}%`}}
-                          ></div>
-                       </div>
-                       <span className="text-xs text-slate-400">{inst.health}%</span>
+                      <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${inst.health > 80 ? 'bg-success' : inst.health > 40 ? 'bg-warning' : 'bg-danger'}`}
+                          style={{ width: `${inst.health}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-slate-400">{inst.health}%</span>
                     </div>
                   </td>
                   <td className="p-4 text-right">
-                    <button 
+                    <button
                       onClick={() => {
                         selectInstance(inst);
                         navigate('INSTANCE_DETAIL');

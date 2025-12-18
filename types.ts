@@ -1,6 +1,7 @@
 export enum UserRole {
   USER = "User",
   TENANT_ADMIN = "Tenant Admin",
+  TENANT_READ_ONLY = "Tenant Read-Only",
   SUPER_ADMIN = "Super Admin",
 }
 

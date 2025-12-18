@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UserRole, ViewState } from '../types';
 import { useGlobal } from '../store';
+import { AccessControlService } from '../services';
 import {
   LayoutDashboard, Server, Users, Settings,
   MessageSquare, Calendar, LogOut, Bell,
@@ -23,8 +24,8 @@ const NavItem: React.FC<{
   <button
     onClick={onClick}
     className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-4 py-3 text-sm font-medium rounded-xl transition-all ${active
-        ? 'bg-secondary text-white border border-white/10 shadow-lg'
-        : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
+      ? 'bg-secondary text-white border border-white/10 shadow-lg'
+      : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
       }`}
     title={collapsed ? label : undefined}
   >
@@ -101,7 +102,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             {!sidebarCollapsed && <span className="text-xl font-bold text-slate-100 tracking-tight whitespace-nowrap">PairMind.AI</span>}
           </div>
-          
+
           {/* Toggle Button at Top */}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -121,13 +122,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             onClick={() => navigate('DASHBOARD')}
             collapsed={sidebarCollapsed}
           />
-          <NavItem
-            icon={<Server className="w-5 h-5" />}
-            label="Instances"
-            active={currentView === 'INSTANCES' || currentView === 'INSTANCE_DETAIL'}
-            onClick={() => navigate('INSTANCES')}
-            collapsed={sidebarCollapsed}
-          />
+          {AccessControlService.canViewInstances(user) && (
+            <NavItem
+              icon={<Server className="w-5 h-5" />}
+              label="Instances"
+              active={currentView === 'INSTANCES' || currentView === 'INSTANCE_DETAIL'}
+              onClick={() => navigate('INSTANCES')}
+              collapsed={sidebarCollapsed}
+            />
+          )}
           <NavItem
             icon={<PieChart className="w-5 h-5" />}
             label="Analytics"
@@ -205,14 +208,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => navigate('TENANTS')}
                 collapsed={sidebarCollapsed}
               />
-              <NavItem
-                icon={<Puzzle className="w-5 h-5" />}
-                label="MCP Providers"
-                active={currentView === 'MCP_MARKETPLACE'}
-                onClick={() => navigate('MCP_MARKETPLACE')}
-                collapsed={sidebarCollapsed}
-              />
             </>
+          )}
+
+          {/* MCP Providers - Visible via permission check */}
+          {AccessControlService.canAccessMcpMarketplace(user) && (
+            <NavItem
+              icon={<Puzzle className="w-5 h-5" />}
+              label="MCP Providers"
+              active={currentView === 'MCP_MARKETPLACE'}
+              onClick={() => navigate('MCP_MARKETPLACE')}
+              collapsed={sidebarCollapsed}
+            />
           )}
 
           {/* Tools Section - Settings for all */}
@@ -253,13 +260,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             )}
           </div>
         </div>
-      </aside>
+      </aside >
 
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col min-h-screen relative transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      < div className={`flex-1 flex flex-col min-h-screen relative transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
 
         {/* Notification & Status - Floating Top Right */}
-        <div className="absolute top-6 right-6 z-20 flex items-center gap-4">
+        < div className="absolute top-6 right-6 z-20 flex items-center gap-4" >
           <div className="text-xs text-slate-400 flex items-center bg-surface/50 backdrop-blur-md border border-white/5 px-3 py-1.5 rounded-full">
             <span className="w-2 h-2 rounded-full bg-success mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
             System Operational
@@ -353,56 +360,58 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             )}
           </div>
-        </div>
+        </div >
 
         {/* Mobile Menu Trigger */}
-        <div className="lg:hidden absolute top-4 left-4 z-20">
+        < div className="lg:hidden absolute top-4 left-4 z-20" >
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white p-2 bg-surface/50 backdrop-blur-md border border-white/5 rounded-lg">
             <Menu className="w-6 h-6" />
           </button>
-        </div>
+        </div >
 
         {/* Scrollable Content */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-16 lg:pt-8">
+        < main className="flex-1 p-4 md:p-8 overflow-y-auto pt-16 lg:pt-8" >
           {children}
-        </main>
-      </div>
+        </main >
+      </div >
 
       {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-64 bg-background border-r border-white/10 p-4">
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-xl font-bold text-white">PairMind.AI</span>
-              <button onClick={() => setMobileMenuOpen(false)}>
-                <X className="w-6 h-6 text-slate-400" />
-              </button>
+      {
+        mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+            <div className="absolute left-0 top-0 bottom-0 w-64 bg-background border-r border-white/10 p-4">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-xl font-bold text-white">PairMind.AI</span>
+                <button onClick={() => setMobileMenuOpen(false)}>
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+              <nav className="space-y-2">
+                <NavItem
+                  icon={<LayoutDashboard className="w-5 h-5" />}
+                  label="Dashboard"
+                  active={currentView === 'DASHBOARD'}
+                  onClick={() => { navigate('DASHBOARD'); setMobileMenuOpen(false); }}
+                />
+                <NavItem
+                  icon={<Server className="w-5 h-5" />}
+                  label="Instances"
+                  active={currentView === 'INSTANCES'}
+                  onClick={() => { navigate('INSTANCES'); setMobileMenuOpen(false); }}
+                />
+                <NavItem
+                  icon={<MessageSquare className="w-5 h-5" />}
+                  label="Chat"
+                  active={currentView === 'CHAT'}
+                  onClick={() => { navigate('CHAT'); setMobileMenuOpen(false); }}
+                />
+              </nav>
             </div>
-            <nav className="space-y-2">
-              <NavItem
-                icon={<LayoutDashboard className="w-5 h-5" />}
-                label="Dashboard"
-                active={currentView === 'DASHBOARD'}
-                onClick={() => { navigate('DASHBOARD'); setMobileMenuOpen(false); }}
-              />
-              <NavItem
-                icon={<Server className="w-5 h-5" />}
-                label="Instances"
-                active={currentView === 'INSTANCES'}
-                onClick={() => { navigate('INSTANCES'); setMobileMenuOpen(false); }}
-              />
-              <NavItem
-                icon={<MessageSquare className="w-5 h-5" />}
-                label="Chat"
-                active={currentView === 'CHAT'}
-                onClick={() => { navigate('CHAT'); setMobileMenuOpen(false); }}
-              />
-            </nav>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
