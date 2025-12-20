@@ -19,6 +19,29 @@ interface CommandIntent {
     params: Record<string, any>;
 }
 
+type ContextState = 
+  | { type: 'idle' }
+  | { type: 'awaiting_param', intent: CommandIntent, param: string, question: string };
+
+// Expanded vocabulary for fuzzy matching
+const conceptMap: Record<string, string[]> = {
+    create: ['create', 'add', 'new', 'make', 'generate', 'deploy', 'provision', 'schedule', 'book', 'register', 'hire'],
+    edit: ['edit', 'update', 'modify', 'change', 'alter', 'adjust', 'fix', 'correct'],
+    delete: ['delete', 'remove', 'cancel', 'destroy', 'trash', 'clear', 'fire', 'ban', 'suspend'],
+    view: ['view', 'see', 'show', 'display', 'get', 'list', 'check', 'find', 'search', 'fetch'],
+    navigate: ['navigate', 'go', 'open', 'visit', 'take', 'switch'],
+    start: ['start', 'launch', 'boot', 'run', 'turn on', 'enable', 'resume', 'activate'],
+    stop: ['stop', 'shutdown', 'halt', 'kill', 'turn off', 'disable', 'deactivate'],
+    restart: ['restart', 'reboot', 'reset', 'reload'],
+    
+    appointment: ['appointment', 'meeting', 'schedule', 'consultation', 'session', 'booking', 'call'],
+    instance: ['instance', 'server', 'bot', 'machine', 'node', 'vm', 'worker', 'service', 'database'],
+    user: ['user', 'member', 'account', 'person', 'staff', 'admin', 'employee', 'teammate', 'colleague'],
+    tenant: ['tenant', 'organization', 'company', 'client', 'workspace', 'business'],
+    page: ['page', 'dashboard', 'screen', 'view', 'analytics', 'report', 'chart', 'graph'],
+    setting: ['setting', 'config', 'preference', 'option', 'parameter', 'profile']
+};
+
 // Helper to find elements by text content with retry
 const findElementByText = (text: string, selector: string = '*', rootElement: HTMLElement | Document = document): HTMLElement | null => {
     const elements = rootElement.querySelectorAll(selector);
@@ -128,17 +151,19 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         addNotification
     } = useGlobal();
 
+    // State
     const [messages, setMessages] = useState<Message[]>([
         {
             id: 'initial-1',
             sender: 'agent',
-            text: `👋 Hello ${user?.name}! I'm your autonomous PairMind AI Agent.\n\n🎯 I can control the ENTIRE application for you:\n\n📅 **Appointments**: Create, list, delete\n🖥️ **Instances**: Create, start, stop, restart, delete\n👥 **Users**: Create, edit, delete, manage roles\n🏢 **Tenants**: Create, manage, suspend\n🧭 **Navigation**: Go to any page\n⚙️ **Settings**: Update configurations\n📊 **Analytics**: View reports\n\n💡 Try: "Create an appointment for tomorrow at 5 PM with John Doe"\n💡 Or: "Start instance Sales-Bot-01"\n💡 Or: "Show all users"`,
+            text: `👋 Hello ${user?.name}! I'm your autonomous PairMind AI Agent.\n\n🎯 I can control the ENTIRE application for you:\n\n📅 **Appointments**: Create, list, delete\n🖥️ **Instances**: Create, start, stop, restart, delete\n👥 **Users**: Create, edit, delete, manage roles\n🏢 **Tenants**: Create, manage, suspend\n🧭 **Navigation**: Go to any page\n⚙️ **Settings**: Update configurations\n\n💡 Try natural language:\n• "I need to schedule a meeting with John tomorrow"\n• "Spin up a new server called Web-01"\n• "Show me the analytics dashboard"`,
             timestamp: new Date(),
             type: 'info'
         }
     ]);
     const [input, setInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [context, setContext] = useState<ContextState>({ type: 'idle' });
     const [awaitingConfirmation, setAwaitingConfirmation] = useState<{ action: () => Promise<void>, message: string } | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const messageIdCounter = useRef(0);
@@ -163,91 +188,110 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         }]);
     };
 
-    // Parse natural language command
-    const parseCommand = (command: string): CommandIntent => {
-        const lower = command.toLowerCase();
-        const intent: CommandIntent = {
-            action: 'unknown',
-            entity: 'unknown',
-            params: {}
-        };
+    // --- Smart NLU Logic ---
 
-        // Detect action
-        if (lower.includes('create') || lower.includes('add') || lower.includes('new')) {
-            intent.action = 'create';
-        } else if (lower.includes('edit') || lower.includes('update') || lower.includes('modify') || lower.includes('change')) {
-            intent.action = 'edit';
-        } else if (lower.includes('delete') || lower.includes('remove') || lower.includes('cancel')) {
-            intent.action = 'delete';
-        } else if (lower.includes('navigate') || lower.includes('go to') || lower.includes('open') || lower.includes('show me')) {
-            intent.action = 'navigate';
-        } else if (lower.includes('view') || lower.includes('see') || lower.includes('display')) {
-            intent.action = 'view';
-        } else if (lower.includes('list') || lower.includes('show all') || lower.includes('show')) {
-            intent.action = 'list';
-        } else if (lower.includes('start') || lower.includes('launch') || lower.includes('boot')) {
-            intent.action = 'start';
-        } else if (lower.includes('stop') || lower.includes('shutdown') || lower.includes('halt')) {
-            intent.action = 'stop';
-        } else if (lower.includes('restart') || lower.includes('reboot')) {
-            intent.action = 'restart';
+    const findConcept = (text: string, category: 'action' | 'entity'): string | null => {
+        const tokens = text.toLowerCase().split(/\s+/);
+        
+        // Check for exact matches and phrases
+        for (const [key, synonyms] of Object.entries(conceptMap)) {
+            // Check if key is in the relevant category subset
+            const isAction = ['create', 'edit', 'delete', 'view', 'navigate', 'start', 'stop', 'restart'].includes(key);
+            if (category === 'action' && !isAction) continue;
+            if (category === 'entity' && isAction) continue;
+
+            // Simple token check
+            if (tokens.some(t => synonyms.includes(t) || t === key)) return key;
+            
+            // Phrase check (e.g. "turn on")
+            if (synonyms.some(s => text.toLowerCase().includes(s))) return key;
         }
+        return null;
+    };
 
-        // Detect entity
-        if (lower.includes('appointment') || lower.includes('meeting') || lower.includes('schedule')) {
-            intent.entity = 'appointment';
-        } else if (lower.includes('instance') || lower.includes('bot')) {
-            intent.entity = 'instance';
-        } else if (lower.includes('user') || lower.includes('member') || lower.includes('account')) {
-            intent.entity = 'user';
-        } else if (lower.includes('tenant') || lower.includes('organization') || lower.includes('company')) {
-            intent.entity = 'tenant';
-        } else if (lower.includes('dashboard') || lower.includes('page') || lower.includes('analytics') || lower.includes('settings') || lower.includes('chat')) {
-            intent.entity = 'page';
-        } else if (lower.includes('setting') || lower.includes('config')) {
-            intent.entity = 'setting';
-        }
-
-        // Extract parameters
-        // Date extraction
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+    const extractParams = (text: string, intent: CommandIntent) => {
+        const lower = text.toLowerCase();
+        
+        // Date/Time
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
         const today = new Date();
-        const nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 7);
-
-        if (lower.includes('tomorrow')) {
-            intent.params.date = tomorrow.toISOString().split('T')[0];
-        } else if (lower.includes('today')) {
-            intent.params.date = today.toISOString().split('T')[0];
-        } else if (lower.includes('next week')) {
-            intent.params.date = nextWeek.toISOString().split('T')[0];
-        }
-
+        
+        if (lower.includes('tomorrow')) intent.params.date = tomorrow.toISOString().split('T')[0];
+        else if (lower.includes('today')) intent.params.date = today.toISOString().split('T')[0];
+        
         // Time extraction
         const timeMatch = lower.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/);
         if (timeMatch) {
             let hours = parseInt(timeMatch[1]);
             const minutes = timeMatch[2] || '00';
             const meridiem = timeMatch[3];
-
             if (meridiem === 'pm' && hours < 12) hours += 12;
             if (meridiem === 'am' && hours === 12) hours = 0;
-
             intent.params.time = `${hours.toString().padStart(2, '0')}:${minutes}`;
         }
 
-        // Name extraction (for appointments, users, instances)
-        const withMatch = lower.match(/with\s+([a-z\s]+?)(?:\s+at|\s+on|\s+for|$)/i);
-        if (withMatch) {
-            intent.params.name = withMatch[1].trim();
+        // Context-aware Name Extraction
+        // If the user says "Call it Web-01" or "Name it John"
+        const nameIndicators = ['call it', 'named', 'name is', 'for', 'with'];
+        let nameFound = false;
+        
+        for (const indicator of nameIndicators) {
+             const regex = new RegExp(`${indicator}\\s+([a-zA-Z0-9\\-_]+)`, 'i');
+             const match = text.match(regex);
+             if (match) {
+                 if (intent.entity === 'appointment' && (indicator === 'with' || indicator === 'for')) {
+                     intent.params.name = match[1];
+                     nameFound = true;
+                 } else if (intent.entity === 'instance') {
+                     intent.params.instanceName = match[1];
+                     nameFound = true;
+                 }
+                 break;
+             }
         }
+        
+        // Fallback: If no complex grammar, check if last word resembles a name/ID IF we have a clear action
+        if (!nameFound) {
+             const words = text.split(' ');
+             const lastWord = words[words.length - 1];
+             if (lastWord.length > 2 && !conceptMap.create.includes(lastWord.toLowerCase())) {
+                 if (intent.entity === 'instance') intent.params.instanceName = lastWord; 
+             }
+        }
+        
+        return intent;
+    };
 
-        // Instance name extraction
-        const instanceMatch = lower.match(/instance\s+([a-z0-9\-]+)/i);
-        if (instanceMatch) {
-            intent.params.instanceName = instanceMatch[1].trim();
+    const parseCommand = (command: string): CommandIntent => {
+        const intent: CommandIntent = {
+            action: 'unknown',
+            entity: 'unknown',
+            params: {}
+        };
+
+        // 1. Identify Core Intent via Fuzzy Concepts
+        const action = findConcept(command, 'action');
+        const entity = findConcept(command, 'entity');
+
+        if (action) intent.action = action as any;
+        if (entity) intent.entity = entity as any;
+        
+        // 2. Inference overrides
+        // If "Start Web-01" -> Implies Instance
+        if (intent.action === 'start' || intent.action === 'stop' || intent.action === 'restart') {
+            if (intent.entity === 'unknown') intent.entity = 'instance';
         }
+        
+        // If "Go to X" -> Implies Page
+        if (intent.action === 'navigate') {
+             // Heuristic for page names
+             if (command.toLowerCase().includes('dashboard')) intent.entity = 'page';
+             else if (command.toLowerCase().includes('settings')) intent.entity = 'setting'; // Special handling
+             else intent.entity = 'page';
+        }
+        
+        // 3. Extract Params
+        extractParams(command, intent);
 
         return intent;
     };
@@ -276,7 +320,12 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             } else if (intent.entity === 'setting') {
                 await handleSettingCommand(intent);
             } else {
-                addMessage('❓ I\'m not sure what you want me to do. Try:\n• "Create appointment tomorrow at 5 PM"\n• "Start instance Sales-Bot-01"\n• "Show all users"\n• "Go to Dashboard"', 'agent', 'warning');
+                // If we have an action but no entity (e.g. "Create")
+                if (intent.action !== 'unknown' && intent.entity === 'unknown') {
+                     addMessage(`❓ What would you like to ${intent.action}? (e.g., "appointment", "instance", "user")`, 'agent', 'warning');
+                } else {
+                     addMessage('❓ I didn\'t quite catch that. Try speaking naturally like:\n• "Schedule a meeting for tomorrow"\n• "Turn on the sales bot"\n• "Go to analytics"', 'agent', 'warning');
+                }
             }
         } catch (error: any) {
             addMessage(`❌ Error: ${error.message}`, 'agent', 'error');
@@ -299,24 +348,25 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     };
 
     const handleCreateAppointment = async (params: Record<string, any>) => {
-        // Permission check
-        addMessage('🔐 Checking permissions...', 'agent', 'info');
-        await wait(500);
-
+        // Permission check first
         if (!AccessControlService.canCreateAppointment(user!)) {
-            addMessage(
-                `⛔ Permission Denied\n\nYour role (${user?.role}) does not allow creating appointments.\nOnly Super Admins and Tenant Admins can create appointments.`,
-                'agent',
-                'error'
-            );
+             addMessage('⛔ Permission Denied: You cannot create appointments.', 'agent', 'error');
+             return;
+        }
+
+        if (!params.name) {
+             setContext({ 
+                type: 'awaiting_param', 
+                intent: { action: 'create', entity: 'appointment', params }, 
+                param: 'name', 
+                question: 'Who is this appointment with?' 
+            });
+            addMessage('❓ Who is this appointment with?', 'agent', 'info');
             return;
         }
 
-        addMessage('✅ Permission verified', 'agent', 'success');
-        await wait(300);
-
         // Validate parameters
-        const customerName = params.name || 'Agent Created Appointment';
+        const customerName = params.name;
         const date = params.date || new Date(Date.now() + 86400000).toISOString().split('T')[0];
         const time = params.time || '17:00';
 
@@ -646,7 +696,13 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     const handleStartInstance = async (params: Record<string, any>) => {
         if (!params.instanceName) {
-            addMessage('❓ Please specify which instance to start (e.g., "Start instance Sales-Bot-01").', 'agent', 'warning');
+            setContext({ 
+                type: 'awaiting_param', 
+                intent: { action: 'start', entity: 'instance', params }, 
+                param: 'instanceName', 
+                question: 'Which instance should I start?' 
+            });
+            addMessage('❓ Which instance would you like to start?', 'agent', 'info');
             return;
         }
 
@@ -698,7 +754,13 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     const handleStopInstance = async (params: Record<string, any>) => {
         if (!params.instanceName) {
-            addMessage('❓ Please specify which instance to stop (e.g., "Stop instance Sales-Bot-01").', 'agent', 'warning');
+             setContext({ 
+                type: 'awaiting_param', 
+                intent: { action: 'stop', entity: 'instance', params }, 
+                param: 'instanceName', 
+                question: 'Which instance should I stop?' 
+            });
+            addMessage('❓ Which instance should I stop?', 'agent', 'info');
             return;
         }
 
@@ -1000,7 +1062,7 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         const userInput = input.trim();
         setInput('');
 
-        // Check if awaiting confirmation
+        // 1. Handle Confirmation
         if (awaitingConfirmation) {
             if (userInput.toLowerCase() === 'yes') {
                 addMessage(userInput, 'user');
@@ -1017,6 +1079,30 @@ export const Agent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 addMessage('❓ Please type "yes" to confirm or "no" to cancel.', 'agent', 'warning');
             }
             return;
+        }
+
+        // 2. Handle Context (Answer to a question)
+        if (context.type === 'awaiting_param') {
+             addMessage(userInput, 'user');
+             const { intent, param } = context;
+             
+             // Update the intent with new info
+             if (param === 'instanceName') intent.params.instanceName = userInput;
+             else if (param === 'name') intent.params.name = userInput;
+             else if (param === 'date') intent.params.date = userInput; // Simplified
+             
+             setContext({ type: 'idle' });
+             
+             // Retry processing with full info
+             addMessage('👍 Got it. resuming...', 'agent', 'info');
+             await wait(300);
+             
+             // Re-route
+             if (intent.entity === 'appointment') await handleAppointmentCommand(intent);
+             else if (intent.entity === 'instance') await handleInstanceCommand(intent);
+             else if (intent.entity === 'user') await handleUserCommand(intent);
+             
+             return;
         }
 
         await processCommand(userInput);
